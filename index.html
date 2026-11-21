@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b10">
+  <meta name="description" content="HelperBar — живий острів для Windows. Музика, фокус і твої пристрої в одному маленькому просторі. Познайомся з інтерактивним демо.">
+  <meta property="og:title" content="HelperBar — маленький острів. Твій простір.">
+  <meta property="og:description" content="Живі очі, улюблена музика й маленькі щоденні справи. Знайомся з HelperBar для Windows.">
+  <meta property="og:type" content="website">
+  <title>HelperBar — маленький острів. Твій простір.</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти до вмісту</a>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-windows" viewBox="0 0 24 24"><path d="M3 4.5 10.5 3.5v8H3zm9-1.3L21 2v9.5h-9zM3 13h7.5v8L3 20zm9 0h9v9.5l-9-1.2z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.3-4.3-2-6-2.5m12 5v-3.8c0-1.1-.4-1.8-.8-2.2 2.7-.3 5.6-1.3 5.6-6A4.7 4.7 0 0 0 18.5 6c.2-.5.6-2-.1-3.8 0 0-1.1-.4-3.8 1.4a13 13 0 0 0-6.9 0C5 1.8 3.9 2.2 3.9 2.2 3.2 4 3.6 5.5 3.8 6a4.7 4.7 0 0 0-1.3 3.5c0 4.7 2.9 5.7 5.6 6-.4.4-.8 1.1-.8 2.2v3.8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7Z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="4"/></symbol>
+    <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="12" width="4" height="8" rx="2"/><rect x="17" y="12" width="4" height="8" rx="2"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="m11 5-5 4H2v6h4l5 4zm5 3a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+  </svg>
+
+  <header class="header wrap">
+    <a class="brand" href="#" aria-label="HelperBar — на початок"><span class="brand-eyes" aria-hidden="true"><i></i><i></i></span><span>helper<span class="accent">bar</span></span></a>
+    <nav aria-label="Головна навігація"><a href="#possibilities">Можливості</a><a href="#demo">Спробувати</a><a href="#questions">Питання</a></nav>
+    <a class="source-link" href="https://github.com/matviu08/helperbar/tree/helperbar" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub</span></a>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><svg class="icon"><use href="#i-windows"/></svg> МАЛЕНЬКИЙ ПРОСТІР ДЛЯ WINDOWS</p>
+        <h1 id="hero-title">Твій комп’ютер.<br>Трохи <span class="serif-accent">живіший.</span></h1>
+        <p class="hero-description">Музика, фокус і твої пристрої — в одному маленькому острові. Завжди поруч. І з власним характером.</p>
+        <div class="hero-actions"><button class="download-button" disabled aria-describedby="download-note"><svg class="icon"><use href="#i-windows"/></svg>Завантажити інсталер<span>Скоро</span></button><a class="text-link" href="#demo">Познайомитися ближче</a></div>
+        <p class="download-note" id="download-note">Інсталер готується. Поки можна погратися з демо.</p>
+      </div>
+      <div class="hero-art" aria-label="Анімована ілюстрація острова HelperBar">
+        <div class="orbital orbital-one"></div><div class="orbital orbital-two"></div><div class="orbital orbital-three"></div><div class="hero-glow"></div>
+        <div class="floating-label label-top"><span class="mini-spark">✧</span> Трішки магії у звичайному дні</div>
+        <div class="hero-island">
+          <div class="hero-island-shine"></div>
+          <div class="eyes hero-eyes" aria-hidden="true"><span class="eye"><i></i></span><span class="eye"><i></i></span></div>
+          <span class="island-clock">12:48</span>
+          <span class="island-divider"></span>
+          <div class="mini-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="floating-note note-music"><div class="mini-cover"></div><div><strong>Твій улюблений трек</strong><span>Завжди під рукою</span></div><svg class="icon"><use href="#i-volume"/></svg></div>
+        <div class="floating-note note-mood"><svg class="icon"><use href="#i-spark"/></svg><span>О, привіт!</span></div>
+        <span class="hero-art-caption">Маленький зовні. Особистий усередині.</span>
+      </div>
+    </section>
+
+    <div class="intro-strip wrap reveal"><p>Усе своє. На відстані одного кліку.</p><div><span>Windows 10 / 11</span><span>Музика й фокус</span><span>Відкритий код</span></div></div>
+
+    <section class="demo-section wrap" id="demo" aria-labelledby="demo-heading">
+      <div class="section-heading reveal"><div><p class="eyebrow">НЕ ПРОСТО ПОДИВИТИСЯ</p><h2 id="demo-heading">Доторкнись до характеру.</h2></div><p>Перемикай стани. Погладь очі.<br>Подивись, як маленьке стає корисним.</p></div>
+      <div class="demo-stage reveal">
+        <div class="demo-toolbar"><span class="demo-badge">Інтерактивне демо</span><button class="motion-control" type="button" aria-pressed="false"><svg class="icon"><use href="#i-pause"/></svg><span>Зупинити анімації</span></button></div>
+        <div class="demo-desktop" data-mode="eyes">
+          <div class="desktop-ripple"></div><span class="desktop-watermark" aria-hidden="true">твій простір.</span>
+          <div class="demo-island" data-mode="eyes">
+            <div class="demo-island-header"><button class="pet-button" type="button" aria-label="Погладити острів"><span class="eyes demo-eyes" aria-hidden="true"><span class="eye"><i></i></span><span class="eye"><i></i></span></span></button><span class="demo-brand">helper<span>bar</span></span><span class="island-mode-label">Радий тебе бачити</span></div>
+            <div class="demo-pane eyes-pane" data-pane="eyes"><div class="welcome-title">Привіт, це я.</div><p>Твій маленький сусід на екрані.</p><span class="pet-hint">Натисни на очі — познайомимось</span></div>
+            <div class="demo-pane music-pane" data-pane="music" hidden><div class="demo-album" aria-hidden="true"><span>AFTER<br>HOURS</span></div><div class="track-copy"><strong>Тихе місто</strong><span>HelperBar Sessions · демотрек</span><div class="demo-wave" aria-hidden="true"></div><div class="track-progress"><span></span></div></div><button class="player-toggle" type="button" aria-label="Призупинити демоанімацію музики" aria-pressed="false"><svg class="icon"><use href="#i-pause"/></svg></button></div>
+            <div class="demo-pane focus-pane" data-pane="focus" hidden><div><span class="small-label">ЧАС ДЛЯ ВАЖЛИВОГО</span><strong class="focus-clock">25:00</strong><span class="focus-caption">Одна справа. Твій темп.</span></div><button class="focus-toggle" type="button" aria-label="Почати демонстраційний таймер"><svg class="icon"><use href="#i-play"/></svg></button><div class="focus-track"><span></span></div></div>
+            <div class="demo-pane devices-pane" data-pane="devices" hidden><div class="headphone-icon"><svg class="icon"><use href="#i-headphones"/></svg></div><div><span class="small-label">ПІДКЛЮЧЕНО</span><strong>Твої навушники</strong><div class="battery-track"><span></span></div></div><span class="battery-percent">72<span>%</span></span></div>
+          </div>
+          <p class="demo-reaction" role="status" aria-live="polite"></p>
+          <div class="desktop-dock" aria-hidden="true"><span>H</span><span>♪</span><span>✧</span><span>◷</span></div>
+        </div>
+        <div class="mode-selector" role="group" aria-label="Стани демонстрації"><button class="mode-button is-active" data-mode-button="eyes" type="button" aria-pressed="true"><span class="tiny-eyes" aria-hidden="true">● ●</span>Живі очі</button><button class="mode-button" data-mode-button="music" type="button" aria-pressed="false"><svg class="icon"><use href="#i-volume"/></svg>Музика</button><button class="mode-button" data-mode-button="focus" type="button" aria-pressed="false"><svg class="icon"><use href="#i-moon"/></svg>Фокус</button><button class="mode-button" data-mode-button="devices" type="button" aria-pressed="false"><svg class="icon"><use href="#i-headphones"/></svg>Пристрої</button></div>
+        <div class="demo-description"><p id="mode-description">Стежить за курсором, моргає й відповідає на дотик. У нього є настрій.</p><span>Ілюстративні дані · без звуку й доступу до пристроїв</span></div>
+      </div>
+    </section>
+
+    <section class="features wrap" id="possibilities" aria-labelledby="features-heading">
+      <div class="section-heading reveal"><div><p class="eyebrow">МЕНШЕ ЗАЙВОГО НА ЕКРАНІ</p><h2 id="features-heading">Місце для твого щодня.</h2></div><p>Не ще одне велике вікно.<br>Кілька потрібних речей — поруч.</p></div>
+      <div class="feature-grid">
+        <article class="feature feature-music reveal"><div class="feature-text"><span class="feature-label">МУЗИКА</span><h3>Відчуває твій ритм.</h3><p>Обкладинка, назва й керування треком. Смуги, контур і очі рухаються у відповідь на системний звук.</p><div class="service-names"><span>YouTube</span><span>YouTube Music</span><span>Spotify</span></div></div><div class="music-art" aria-hidden="true"><div class="vinyl"><div></div></div><div class="album-sleeve"><span>YOUR<br>DAILY<br><i>rhythm.</i></span><small>HELPERBAR SESSIONS</small></div><div class="equalizer"></div></div></article>
+        <article class="feature feature-home reveal"><span class="feature-label">ПЕРСОНАЛЬНА ГОЛОВНА</span><h3>Те, чим користуєшся ти.</h3><p>Програми, папки, сайти й віджети. Збери власний набір і розклади його як зручно.</p><div class="home-preview" aria-hidden="true"><div class="home-widget"><span>СЬОГОДНІ</span><strong>12:48</strong><small>Час для своїх ідей</small></div><div class="home-shortcut"><svg class="icon"><use href="#i-grid"/></svg><span>Програми</span></div><div class="home-shortcut"><svg class="icon"><use href="#i-headphones"/></svg><span>Музика</span></div><div class="home-note"><span>На сьогодні</span><p>Зробити щось своє ✧</p></div></div></article>
+        <article class="feature feature-quiet reveal"><div class="quiet-art" aria-hidden="true"><div class="quiet-orbit"></div><div class="sleeping-eyes"><i></i><i></i></div><span>тиша теж має значення.</span></div><div class="feature-text"><span class="feature-label">ПОВНИЙ ЕКРАН</span><h3>Знає, коли не заважати.</h3><p>Гра чи відео на весь екран? Острів може сховатися або залишити лише очі. Сповіщення зачекають.</p></div></article>
+        <article class="feature feature-personal reveal"><div class="feature-text"><span class="feature-label">ТВІЙ ХАРАКТЕР</span><h3>Знайди свій відтінок.</h3><p>Кольори, рух, розмір і реакції на музику. Зроби острів схожим на себе.</p></div><div class="color-preview"><span class="eyes color-eyes" aria-hidden="true"><span class="eye"><i></i></span><span class="eye"><i></i></span></span><div class="swatches" role="group" aria-label="Колір демонстрації"><button class="swatch is-selected" style="--swatch:#bda9ff" data-color="#bda9ff" type="button" aria-label="Лавандовий акцент" aria-pressed="true"></button><button class="swatch" style="--swatch:#8ae4cb" data-color="#8ae4cb" type="button" aria-label="М’ятний акцент" aria-pressed="false"></button><button class="swatch" style="--swatch:#ffc69e" data-color="#ffc69e" type="button" aria-label="Персиковий акцент" aria-pressed="false"></button><button class="swatch" style="--swatch:#9fccff" data-color="#9fccff" type="button" aria-label="Блакитний акцент" aria-pressed="false"></button></div></div></article>
+      </div>
+    </section>
+
+    <section class="small-things wrap reveal" aria-label="Ще кілька корисних речей"><div><svg class="icon"><use href="#i-lock"/></svg><h3>Особисте лишається твоїм.</h3><p>Нотатки й налаштування програма зберігає локально на комп’ютері.</p></div><div><svg class="icon"><use href="#i-headphones"/></svg><h3>Пристрої не мовчать.</h3><p>Підключення й низький заряд — коротка картка, коли Windows передає ці дані.</p></div><div><svg class="icon"><use href="#i-spark"/></svg><h3>Рух у твоєму темпі.</h3><p>Налаштовуй анімації або зменшуй їх, якщо хочеться спокою.</p></div></section>
+
+    <section class="faq wrap" id="questions" aria-labelledby="faq-heading"><div class="faq-heading reveal"><p class="eyebrow">ПЕРЕД ЗНАЙОМСТВОМ</p><h2 id="faq-heading">Кілька відповідей.</h2><p>Щоб усе було зрозуміло<br>ще до першого запуску.</p></div><div class="faq-list reveal">
+      <details><summary>Це вже можна завантажити?<span aria-hidden="true">+</span></summary><p>Код програми вже є на GitHub. Готовий інсталер ще готується, тому кнопка завантаження поки неактивна. Зібрати програму самостійно можна за інструкцією в README.</p></details>
+      <details><summary>Що потрібно для роботи?<span aria-hidden="true">+</span></summary><p>Windows 10 версії 2004 або новіша, зокрема Windows 11. Поточній збірці потрібен .NET Desktop Runtime 10. Для збірки з коду — .NET SDK 10. Вимоги майбутнього інсталятора уточнимо перед випуском.</p></details>
+      <details><summary>Звідки острів знає, що грає?<span aria-hidden="true">+</span></summary><p>Програма використовує медіасесії Windows для назви, обкладинки та керування. YouTube і YouTube Music у браузері та Spotify уже перевірені. Анімація реагує на системний звук; мікрофон для цього не потрібен.</p></details>
+      <details><summary>Чи покаже заряд моєї мишки?<span aria-hidden="true">+</span></summary><p>Якщо Windows отримує від пристрою заряд. Є підтримка Bluetooth; для USB-приймачів усе залежить від драйвера. Коли відсоток недоступний, острів чесно показує це — без вигаданих значень.</p></details>
+      <details><summary>Демо керує моїм комп’ютером?<span aria-hidden="true">+</span></summary><p>Ні. Це статична демонстрація в браузері з ілюстративними даними. Вона не читає твою музику, не підключається до пристроїв і не змінює налаштування Windows.</p></details>
+    </div></section>
+
+    <section class="closing wrap reveal" aria-labelledby="closing-heading"><div class="closing-glow"></div><span class="eyes closing-eyes" aria-hidden="true"><span class="eye"><i></i></span><span class="eye"><i></i></span></span><p class="eyebrow">HELPERBAR ДЛЯ WINDOWS</p><h2 id="closing-heading">Маленька деталь.<br>Зовсім інше відчуття.</h2><p>Твій острів скоро буде готовий до заселення.</p><button class="download-button" disabled aria-describedby="release-note"><svg class="icon"><use href="#i-windows"/></svg>Завантажити інсталер<span>Скоро</span></button><span class="release-note" id="release-note">Дата випуску інсталятора ще не оголошена.</span><a class="text-link" href="https://github.com/matviu08/helperbar/tree/helperbar" target="_blank" rel="noopener noreferrer">А поки — зазирни в код</a></section>
+  </main>
+
+  <footer class="footer wrap"><a class="brand" href="#" aria-label="HelperBar — на початок"><span class="brand-eyes" aria-hidden="true"><i></i><i></i></span><span>helper<span class="accent">bar</span></span></a><p>Зроблено для маленьких щоденних зручностей.</p><a href="https://github.com/matviu08/helperbar/tree/helperbar" target="_blank" rel="noopener noreferrer">Код і документація</a></footer>
+  <noscript><p class="noscript-note">JavaScript вимкнений. Уся інформація доступна; для інтерактивного демо увімкни JavaScript.</p></noscript>
+</body>
+</html>

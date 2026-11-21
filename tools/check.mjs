@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { readFile, access } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const html = await readFile(path.join(root, 'index.html'), 'utf8');
+const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+assert.equal(ids.length, new Set(ids).size, 'HTML IDs must be unique');
+for (const [, id] of html.matchAll(/href="#([^"]+)"/g)) assert(ids.includes(id), `Missing anchor: ${id}`);
+for (const [, file] of html.matchAll(/(?:href|src)="\.\/([^"]+)"/g)) await access(path.join(root, file));
+const downloads = [...html.matchAll(/<button\b[^>]*class="download-button"[^>]*>/g)];
+assert.equal(downloads.length, 2, 'Both download calls to action should be present');
+for (const [tag] of downloads) assert(/\bdisabled\b/.test(tag), 'Installer controls must remain disabled');
+assert(!/href="[^"]*\.(exe|msi|zip)"/i.test(html), 'No installer download should be linked yet');
+assert.equal([...html.matchAll(/data-mode-button=/g)].length, 4);
+assert.equal([...html.matchAll(/data-pane=/g)].length, 4);
+assert(html.includes('lang="uk"'));
+assert(!/https?:\/\/[^"\s]+\.(js|css)["\s]/i.test(html), 'Static assets should load without external services');
+console.log('PASS: anchors, unique IDs, local assets, four demo modes, Ukrainian language, disabled installer controls, no external runtime dependencies.');

@@ -1,0 +1,12 @@
+{
+  "name": "helperbar-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static demonstration website for HelperBar for Windows",
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/serve.mjs",
+    "check": "node --check app.js && node tools/check.mjs"
+  },
+  "engines": { "node": ">=18" }
+}
