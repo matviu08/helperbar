@@ -43,7 +43,7 @@ public sealed partial class IslandWindow : Window
     private readonly bool musicTest;
     private string[] pageNames = { "Головна", "Музика", "Фокус", "Нотатки", "Вигляд" };
 
-    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false)
+    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false)
     {
         this.smokeTest = smokeTest;
         this.inspectionMode = inspectionMode;
@@ -91,7 +91,8 @@ public sealed partial class IslandWindow : Window
             CompositionTarget.Rendering += OnRender;
             secondTimer.Tick += OnSecond; secondTimer.Start();
             saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveNow(); };
-            if (deviceNoticeTest) await RunDeviceNoticeIntegrationTest();
+            if (audioOutputTest) await RunAudioOutputIntegrationTest();
+            else if (deviceNoticeTest) await RunDeviceNoticeIntegrationTest();
             else if (fullscreenTest) await RunFullscreenIntegrationTest();
             else if (batteryTest) await RunBatteryIntegrationTest();
             else if (homeTest) await RunHomeIntegrationTest();
@@ -102,9 +103,7 @@ public sealed partial class IslandWindow : Window
             {
                 StartFullscreenMonitoring();
                 UpdateDeviceBatteryMonitoring();
-                volumeService = new AudioVolumeService();
-                volumeService.Changed += UpdateVolumeControls;
-                volumeService.Start();
+                StartAudioControls();
                 if (settings.AudioReactive) audio = new AudioSpectrum();
                 await media.StartAsync();
                 if (closed) return;
@@ -117,6 +116,7 @@ public sealed partial class IslandWindow : Window
             closed = true; CompositionTarget.Rendering -= OnRender;
             secondTimer.Stop(); saveTimer.Stop(); SaveNow();
             fullscreenTimer.Stop(); fullscreenTimer.Tick -= CheckFullscreen;
+            CloseAudioOutputs(); outputService?.Dispose();
             media.Dispose(); audio?.Dispose(); volumeService?.Dispose();
             deviceBatteries.Dispose();
             shortcuts?.Dispose();
@@ -211,6 +211,7 @@ public sealed partial class IslandWindow : Window
 
     private void SetExpanded(bool value, bool activate = true)
     {
+        if (!value) CloseAudioOutputs();
         if (value && activate && !applyingFullscreen) ShowIslandManually();
         surface.Expanded = value;
         expanded.IsHitTestVisible = value;

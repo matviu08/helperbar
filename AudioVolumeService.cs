@@ -7,6 +7,7 @@ namespace HelperBar;
 
 public sealed record VolumeState(bool Available, float Level, bool Muted)
 {
+    public string? EndpointId { get; init; }
     public int Percent => (int)Math.Round(Level * 100);
     public static readonly VolumeState Unavailable = new(false, 0, false);
 }
@@ -20,6 +21,7 @@ public sealed class AudioVolumeService : IDisposable
     private Thread? worker;
     private volatile bool stopping;
     private float? requestedLevel;
+    private string? commandEndpointId;
     private int muteToggles;
     private VolumeState state = VolumeState.Unavailable, delivered = VolumeState.Unavailable;
     public VolumeState State => Volatile.Read(ref state);
@@ -34,16 +36,22 @@ public sealed class AudioVolumeService : IDisposable
     public void SetLevel(float level)
     {
         if (stopping || !float.IsFinite(level) || !State.Available) return;
-        lock (gate) requestedLevel = Math.Clamp(level, 0, 1);
+        lock (gate) { BindCommands(); requestedLevel = Math.Clamp(level, 0, 1); }
         wake.Set();
     }
     public void Change(float delta)
     {
-        if (stopping || !State.Available) return;
-        lock (gate) requestedLevel = Math.Clamp((requestedLevel ?? State.Level) + delta, 0, 1);
+        if (stopping || !State.Available || !float.IsFinite(delta)) return;
+        lock (gate) { BindCommands(); requestedLevel = Math.Clamp((requestedLevel ?? State.Level) + delta, 0, 1); }
         wake.Set();
     }
-    public void ToggleMute() { if (stopping || !State.Available) return; Interlocked.Increment(ref muteToggles); wake.Set(); }
+    public void ToggleMute() { if (stopping || !State.Available) return; lock (gate) { BindCommands(); muteToggles++; } wake.Set(); }
+    private void BindCommands()
+    {
+        if (commandEndpointId == State.EndpointId) return;
+        requestedLevel = null; muteToggles = 0; commandEndpointId = State.EndpointId;
+    }
+    public void CancelPending() => ClearCommands();
     private void Run()
     {
         var initialized = CoInitializeEx(IntPtr.Zero, 0) >= 0;
@@ -72,13 +80,13 @@ public sealed class AudioVolumeService : IDisposable
                         }
                     }
                     finally { Release(device); }
-                    float? level;
-                    lock (gate) { level = requestedLevel; requestedLevel = null; }
-                    if (level.HasValue) Check(endpoint.SetMasterVolumeLevelScalar(level.Value, IntPtr.Zero));
-                    if (Interlocked.Exchange(ref muteToggles, 0) % 2 != 0)
+                    float? level; int toggles; string? commandId;
+                    lock (gate) { level = requestedLevel; toggles = muteToggles; commandId = commandEndpointId; requestedLevel = null; muteToggles = 0; }
+                    if (commandId == endpointId && level.HasValue) Check(endpoint.SetMasterVolumeLevelScalar(level.Value, IntPtr.Zero));
+                    if (commandId == endpointId && toggles % 2 != 0)
                     { Check(endpoint.GetMute(out var muted)); Check(endpoint.SetMute(!muted, IntPtr.Zero)); }
                     Check(endpoint.GetMasterVolumeLevelScalar(out var actual)); Check(endpoint.GetMute(out var mute));
-                    Volatile.Write(ref state, new(true, Math.Clamp(actual, 0, 1), mute));
+                    Volatile.Write(ref state, new VolumeState(true, Math.Clamp(actual, 0, 1), mute) { EndpointId = endpointId });
                 }
                 catch (Exception ex) when (ex is not OutOfMemoryException)
                 {
@@ -90,7 +98,7 @@ public sealed class AudioVolumeService : IDisposable
         }
         finally { Release(endpoint); Release(enumerator); if (initialized) CoUninitialize(); }
     }
-    private void ClearCommands() { lock (gate) requestedLevel = null; Interlocked.Exchange(ref muteToggles, 0); }
+    private void ClearCommands() { lock (gate) { requestedLevel = null; muteToggles = 0; commandEndpointId = null; } }
     public void Dispose()
     {
         if (stopping) return;

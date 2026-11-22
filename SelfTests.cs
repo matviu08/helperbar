@@ -14,6 +14,7 @@ internal static class SelfTests
         try
         {
             void Check(bool condition, string label) { if (!condition) throw new InvalidOperationException(label); results.Add("PASS " + label); }
+            AudioOutputTests.Run(Check);
             var spring = new Spring(226) { Target = 524 };
             var max = 0d;
             for (var i = 0; i < 240; i++) { spring.Step(1d / 60); max = Math.Max(max, spring.Value); }

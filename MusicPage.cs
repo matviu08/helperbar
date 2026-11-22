@@ -69,7 +69,8 @@ public sealed partial class IslandWindow
         musicPlay = Ui.Button("▶", async () => await RunMediaCommand("toggle"), "Відтворити", true); musicPlay.Width = 48; musicPlay.Padding = new Thickness(0); musicPlay.Margin = new Thickness(7, 0, 7, 0); musicPlay.FontSize = 16;
         musicNext = Ui.Button("❯❯", async () => await RunMediaCommand("next"), "Наступний трек"); musicNext.Width = 34; musicNext.Padding = new Thickness(0); musicNext.BorderThickness = new Thickness(0);
         transport.Children.Add(musicPrevious); transport.Children.Add(musicPlay); transport.Children.Add(musicNext); controls.Children.Add(transport);
-        musicStatus = Ui.Text("", 9, "#8B7E99"); musicStatus.Margin = new Thickness(12, 0, 4, 0); Grid.SetColumn(musicStatus, 1); controls.Children.Add(musicStatus);
+        musicStatus = Ui.Text("", 9, "#8B7E99"); musicSpectrum.ToolTip = musicStatus;
+        musicOutput = CreateOutputButton(); musicOutput.Margin = new Thickness(7, 0, 3, 0); Grid.SetColumn(musicOutput, 1); controls.Children.Add(musicOutput);
         var volume = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         volumeMute = Ui.Button("♪", () => { notifyVolume = true; volumeService?.ToggleMute(); }, "Увімкнути / вимкнути системний звук");
         volumeMute.Width = 30; volumeMute.MinHeight = 28; volumeMute.Height = 28; volumeMute.Padding = new Thickness(0);
@@ -93,6 +94,7 @@ public sealed partial class IslandWindow
 
     private void ClearMusicPage()
     {
+        CloseAudioOutputs(); musicOutput = null;
         musicTitle = musicArtist = musicAlbum = musicElapsed = musicDuration = musicStatus = coverPlaceholder = null;
         musicPlay = musicPrevious = musicNext = musicSource = null; musicCover = null; musicCard = null; musicSeek = null; musicSpectrum = null; musicSeeking = false; displayedCover = null; displayedCoverColor = null;
         volumeSlider = null; volumeMute = null; volumePercent = null;
@@ -160,7 +162,7 @@ public sealed partial class IslandWindow
         {
             updatingVolume = true;
             if (!volumeSlider.IsMouseCaptureWithin) volumeSlider.Value = state.Level * 100;
-            volumeSlider.IsEnabled = state.Available; volumeMute!.IsEnabled = state.Available;
+            volumeSlider.IsEnabled = CanAdjustVolume(state); volumeMute!.IsEnabled = CanAdjustVolume(state);
             volumePercent!.Text = state.Available ? $"{state.Percent}%" : "—";
             volumeMute.Content = state.Muted ? "✕" : "♪";
             volumeMute.ToolTip = !state.Available ? "Аудіовихід недоступний" : state.Muted ? "Звук вимкнений · увімкнути" : "Вимкнути звук";
@@ -175,7 +177,7 @@ public sealed partial class IslandWindow
     }
     private void ChangeVolume(float delta)
     {
-        if (volumeService?.State.Available != true) { surface.Notify("Аудіовихід недоступний", "curious"); return; }
+        if (volumeService == null || !CanAdjustVolume(volumeService.State)) { surface.Notify("Аудіовихід недоступний", "curious"); return; }
         notifyVolume = true; volumeService.Change(delta);
         // At either boundary there may be no change event.
         surface.Notify(volumeService.State.Muted ? "Звук вимкнений" : $"Гучність · {Math.Clamp(volumeService.State.Percent + delta * 100, 0, 100):0}%", "wink", "volume");

@@ -14,13 +14,15 @@ internal static class Program
         if (Array.IndexOf(args, "--shutdown") >= 0) { Native.StopExisting(); return 0; }
         if (Array.IndexOf(args, "--media-probe") >= 0) return MediaProbe.RunAsync().GetAwaiter().GetResult();
         if (Array.IndexOf(args, "--battery-probe") >= 0) return BatteryProbe.RunAsync().GetAwaiter().GetResult();
+        if (Array.IndexOf(args, "--audio-probe") >= 0) return AudioProbe.Run();
+        var audioOutputTest = Array.IndexOf(args, "--audio-output-test") >= 0;
         var musicTest = Array.IndexOf(args, "--music-test") >= 0;
         var dailyTest = Array.IndexOf(args, "--daily-test") >= 0;
         var homeTest = Array.IndexOf(args, "--home-test") >= 0;
         var batteryTest = Array.IndexOf(args, "--battery-test") >= 0;
         var fullscreenTest = Array.IndexOf(args, "--fullscreen-test") >= 0;
         var deviceNoticeTest = Array.IndexOf(args, "--device-notice-test") >= 0;
-        var testMode = Array.IndexOf(args, "--smoke-test") >= 0 || musicTest || dailyTest || homeTest || batteryTest || fullscreenTest || deviceNoticeTest;
+        var testMode = Array.IndexOf(args, "--smoke-test") >= 0 || musicTest || dailyTest || homeTest || batteryTest || fullscreenTest || deviceNoticeTest || audioOutputTest;
         using var singleInstance = new Mutex(true, "Local\\HelperBar.Personal.Island", out var first);
         if (!first) { if (testMode) return 2; if (Array.IndexOf(args, "--startup") < 0) Native.NotifyExisting(); return 0; }
         var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
@@ -30,7 +32,7 @@ internal static class Program
             MessageBox.Show("Не вдалося виконати дію. Подробиці збережено у data/error.log.\n" + e.Exception.Message, "HelperBar");
             e.Handled = true;
         };
-        app.Run(new IslandWindow(testMode, Array.IndexOf(args, "--inspect") >= 0, musicTest, dailyTest, homeTest, batteryTest, fullscreenTest, deviceNoticeTest));
+        app.Run(new IslandWindow(testMode, Array.IndexOf(args, "--inspect") >= 0, musicTest, dailyTest, homeTest, batteryTest, fullscreenTest, deviceNoticeTest, audioOutputTest));
         return Environment.ExitCode;
     }
 }

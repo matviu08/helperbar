@@ -23,6 +23,7 @@ public sealed partial class IslandWindow
 
     private void ClearHomePage()
     {
+        CloseAudioOutputs(); homeOutput = null;
         homeGeneration++;
         homeMusicTitle = homeMusicArtist = homeFocusTime = homeFocusStatus = homeNote = homeVolumePercent = null;
         homeArtwork = null; homePlay = homeFocusToggle = homeMute = null; homeVolume = null; homeScroll = null;
@@ -108,7 +109,11 @@ public sealed partial class IslandWindow
                 homeVolume = new Slider { Minimum = 0, Maximum = 100, SmallChange = 2, LargeChange = 10, Height = 24 };
                 AutomationProperties.SetName(homeVolume, "Гучність на головній");
                 homeVolume.ValueChanged += (_, _) => { if (!homeUpdatingVolume) { homeVolumePercent.Text = $"{homeVolume.Value:0}%"; volumeService?.SetLevel((float)(homeVolume.Value / 100)); } };
-                content = Ui.Column(HomeHeadingWithAction("ГУЧНІСТЬ WINDOWS", homeMute), Ui.Gap(4), homeVolume, homeVolumePercent); break;
+                homeOutput = CreateOutputButton(true);
+                homeVolumePercent.Width = 38; homeVolumePercent.TextAlignment = TextAlignment.Right;
+                var volumeBottom = new Grid(); volumeBottom.ColumnDefinitions.Add(new ColumnDefinition()); volumeBottom.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(43) });
+                volumeBottom.Children.Add(homeOutput); Grid.SetColumn(homeVolumePercent, 1); volumeBottom.Children.Add(homeVolumePercent);
+                content = Ui.Column(HomeHeadingWithAction("ГУЧНІСТЬ WINDOWS", homeMute), Ui.Gap(1), homeVolume, volumeBottom); break;
             default: content = Ui.Text(item.Title); break;
         }
         var tile = new Border { Width = 226, Height = 92, CornerRadius = new CornerRadius(15), Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 0, 8, 8), BorderThickness = new Thickness(1), BorderBrush = Ui.Brush("#2B2734"), Background = Ui.Brush("#19161F"), Child = content };
@@ -193,10 +198,11 @@ public sealed partial class IslandWindow
         if (homeVolume == null) return;
         homeUpdatingVolume = true;
         if (!homeVolume.IsMouseCaptureWithin) homeVolume.Value = state.Level * 100;
-        homeVolume.IsEnabled = homeMute!.IsEnabled = state.Available;
+        homeVolume.IsEnabled = homeMute!.IsEnabled = CanAdjustVolume(state);
         homeMute.Content = state.Muted ? "✕" : "♪"; homeMute.ToolTip = state.Muted ? "Увімкнути звук" : "Вимкнути звук";
         AutomationProperties.SetName(homeMute, homeMute.ToolTip.ToString());
-        homeVolumePercent!.Text = state.Available ? $"{state.Percent}%" + (state.Muted ? " · без звуку" : "") : "Вихід недоступний";
+        homeVolumePercent!.Text = state.Available ? $"{state.Percent}%" : "—";
+        homeVolumePercent.ToolTip = state.Available ? state.Muted ? "Звук вимкнений" : "Гучність Windows" : "Вихід недоступний";
         homeUpdatingVolume = false;
     }
 }

@@ -106,6 +106,8 @@ public sealed class AudioSpectrum : IDisposable
     private SpectrumFrame latest = SpectrumFrame.Silent;
     private int disposed, available;
     private string status = "Під’єднуємо звук…";
+    private string? endpointId;
+    public string? EndpointId => Volatile.Read(ref endpointId);
     public bool Available => Volatile.Read(ref available) == 1;
     public string Status => Volatile.Read(ref status);
     public AudioSpectrum()
@@ -147,7 +149,7 @@ public sealed class AudioSpectrum : IDisposable
             Marshal.FreeCoTaskMem(formatPointer); formatPointer = IntPtr.Zero;
             var captureId = typeof(IAudioCaptureClient).GUID; Check(client.GetService(ref captureId, out var service)); capture = (IAudioCaptureClient)service;
             var analyzer = new SpectrumAnalyzer(format.SampleRate); var bytes = new byte[format.BlockAlign * 8192];
-            Check(client.Start()); Volatile.Write(ref available, 1); Volatile.Write(ref status, "Системний звук");
+            Check(client.Start()); Volatile.Write(ref endpointId, deviceId); Volatile.Write(ref available, 1); Volatile.Write(ref status, "Системний звук");
             var deviceCheck = Stopwatch.StartNew();
             while (!stop.IsCancellationRequested)
             {
@@ -195,7 +197,7 @@ public sealed class AudioSpectrum : IDisposable
         }
         finally
         {
-            Volatile.Write(ref latest, SpectrumFrame.Silent); Volatile.Write(ref available, 0);
+            Volatile.Write(ref latest, SpectrumFrame.Silent); Volatile.Write(ref available, 0); Volatile.Write(ref endpointId, null);
             if (client != null) { try { client.Stop(); } catch { } }
             if (formatPointer != IntPtr.Zero) Marshal.FreeCoTaskMem(formatPointer);
             Release(capture); Release(client); Release(device); Release(enumerator);
