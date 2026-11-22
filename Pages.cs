@@ -59,6 +59,7 @@ public sealed partial class IslandWindow
         timerToggle = null; progressFill = null;
         ClearMusicPage();
         ClearFocusPage();
+        ClearNotesPage();
         ClearHomePage();
         ClearSettingsPage();
         ClearBatteryPreferences();
@@ -77,6 +78,7 @@ public sealed partial class IslandWindow
     {
         timerLabel = Ui.Text("25:00", 51, "#F2EBFF", true); timerLabel.HorizontalAlignment = HorizontalAlignment.Center;
         timerStateLabel = Ui.Text("Твій час для важливого", 11, "#9B8EAC"); timerStateLabel.HorizontalAlignment = HorizontalAlignment.Center;
+        timerStateLabel.Width = 420; timerStateLabel.TextAlignment = TextAlignment.Center; timerStateLabel.TextWrapping = TextWrapping.NoWrap; timerStateLabel.TextTrimming = TextTrimming.CharacterEllipsis;
         var presets = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
         foreach (var minutes in new[] { 5, 15, 25, 50 })
         {
@@ -92,14 +94,15 @@ public sealed partial class IslandWindow
         return Ui.Column(presets, Ui.Gap(3), timerLabel, timerStateLabel, Ui.Gap(17), progress, Ui.Gap(17), controls);
     }
 
-    private FrameworkElement NotesPage()
+    private FrameworkElement NotesEditorPage()
     {
         var heading = Ui.Text("Думка, яку хочеться зберегти", 16, "#E9E1F3", true);
-        var note = new TextBox { Text = settings.Note, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Height = 160, Margin = new Thickness(0, 10, 0, 0), MaxLength = 100000 };
+        var note = notesEditor = new TextBox { Text = settings.Note, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 9, 0, 0), MaxLength = 100000 };
         System.Windows.Automation.AutomationProperties.SetName(note, "Твої нотатки");
         noteStateLabel = Ui.Text("Зберігається на цьому комп’ютері", 10, "#807588"); noteStateLabel.Margin = new Thickness(0, 9, 0, 0);
         note.TextChanged += (_, _) => { settings.Note = note.Text; if (noteStateLabel != null) noteStateLabel.Text = "Зберігаю…"; Persist(); };
-        return Ui.Column(heading, note, noteStateLabel);
+        var editor = new Grid(); editor.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); editor.RowDefinitions.Add(new RowDefinition()); editor.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        editor.Children.Add(heading); Grid.SetRow(note, 1); editor.Children.Add(note); Grid.SetRow(noteStateLabel, 2); editor.Children.Add(noteStateLabel); return editor;
     }
 
     private FrameworkElement AppearancePreferences()

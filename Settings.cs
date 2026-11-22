@@ -40,6 +40,8 @@ public sealed class Settings
     public string OpenShortcut { get; set; } = "Ctrl+Alt+Space";
     public string PetShortcut { get; set; } = "Ctrl+Alt+E";
     public string Note { get; set; } = "";
+    public string NotesView { get; set; } = "note";
+    public TodoList Todos { get; set; } = new();
     public int FocusMinutes { get; set; } = 25;
     public string FocusView { get; set; } = "focus";
     public ReminderTimers Reminders { get; set; } = new();
@@ -80,6 +82,8 @@ public sealed class Settings
             if (result.FocusView is not ("focus" or "timers")) result.FocusView = "focus";
             result.Reminders ??= new(); result.Reminders.Normalize(DateTimeOffset.UtcNow);
             result.Note ??= "";
+            if (result.NotesView is not ("note" or "tasks")) result.NotesView = "note";
+            result.Todos ??= new(); result.Todos.Normalize(DateOnly.FromDateTime(DateTime.Now));
             result.Home ??= HomeLayout.Default(); result.Home.Normalize();
             if (!ValidColor(result.Accent)) result.Accent = "#BCACFF";
             if (!ValidColor(result.Body)) result.Body = "#08090C";

@@ -24,6 +24,7 @@ public sealed partial class IslandWindow
     private void ClearHomePage()
     {
         CloseAudioOutputs(); homeOutput = null;
+        homeTodoTitle = homeTodoStatus = null; homeTodoDone = null;
         homeGeneration++;
         homeMusicTitle = homeMusicArtist = homeFocusTime = homeFocusStatus = homeNote = homeVolumePercent = null;
         homeArtwork = null; homePlay = homeFocusToggle = homeMute = null; homeVolume = null; homeScroll = null;
@@ -102,7 +103,9 @@ public sealed partial class IslandWindow
                 content = Ui.Column(HomeHeading("ТВІЙ КОМП’ЮТЕР"), Ui.Gap(9), ramLabel, Ui.Gap(5), powerLabel); break;
             case "note":
                 homeNote = Ui.Text("", 12, "#DED3EC"); homeNote.MaxHeight = 43; homeNote.TextTrimming = TextTrimming.CharacterEllipsis;
-                content = Ui.Column(HomeHeading("НОТАТКА  ↗"), Ui.Gap(8), homeNote); open = () => SwitchPage("Нотатки"); break;
+                content = Ui.Column(HomeHeading("НОТАТКА  ↗"), Ui.Gap(8), homeNote); open = () => OpenNotesSection("note"); break;
+            case "tasks":
+                content = HomeTodoContent(); open = () => OpenNotesSection("tasks"); break;
             case "volume":
                 homeVolumePercent = HomeLine("—", 12, "#E9DFF7", true);
                 homeMute = HomeSmallButton("♪", () => volumeService?.ToggleMute()); homeMute.Width = 28; homeMute.MinHeight = 23; homeMute.Padding = new Thickness(0);
@@ -192,6 +195,7 @@ public sealed partial class IslandWindow
             homeFocusToggle!.Content = focus.Running ? "Ⅱ" : "▶"; AutomationProperties.SetName(homeFocusToggle, focus.Running ? "Призупинити фокус" : "Почати фокус");
         }
         if (homeNote != null) homeNote.Text = string.IsNullOrWhiteSpace(settings.Note) ? "Натисни, щоб зберегти думку…" : settings.Note;
+        UpdateHomeTodos();
     }
     private void UpdateHomeVolume(VolumeState state)
     {

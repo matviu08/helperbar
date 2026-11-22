@@ -43,7 +43,7 @@ public sealed partial class IslandWindow : Window
     private readonly bool musicTest;
     private string[] pageNames = { "Головна", "Музика", "Фокус", "Нотатки", "Вигляд" };
 
-    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false)
+    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false, bool todoTest = false)
     {
         this.smokeTest = smokeTest;
         this.inspectionMode = inspectionMode;
@@ -79,6 +79,8 @@ public sealed partial class IslandWindow : Window
         };
         PreviewKeyDown += (_, e) =>
         {
+            if (e.Key == Key.Escape && currentPage == "Нотатки" && settings.NotesView == "tasks" && todoEditingId != null)
+            { CancelTodoEdit(); e.Handled = true; return; }
             if (!capturingShortcut && e.Key == Key.Escape) { SetExpanded(false); e.Handled = true; }
         };
         SourceInitialized += (_, _) => InitializeWindow();
@@ -92,7 +94,8 @@ public sealed partial class IslandWindow : Window
             CompositionTarget.Rendering += OnRender;
             secondTimer.Tick += OnSecond; secondTimer.Start();
             saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveNow(); };
-            if (reminderTest) await RunReminderIntegrationTest();
+            if (todoTest) await RunTodoIntegrationTest();
+            else if (reminderTest) await RunReminderIntegrationTest();
             else if (audioOutputTest) await RunAudioOutputIntegrationTest();
             else if (deviceNoticeTest) await RunDeviceNoticeIntegrationTest();
             else if (fullscreenTest) await RunFullscreenIntegrationTest();
@@ -309,6 +312,7 @@ public sealed partial class IslandWindow : Window
     private void OnSecond(object? sender, EventArgs e)
     {
         var now = DateTimeOffset.Now;
+        RefreshTodoDay(DateOnly.FromDateTime(now.LocalDateTime));
         ProcessReminders(now);
         if (focus.Tick(now))
         {
@@ -330,7 +334,7 @@ public sealed partial class IslandWindow : Window
         if (ramLabel != null) { var mem = Native.Memory(); ramLabel.Text = $"{mem.Percent}%  ·  {mem.Used:0.0} / {mem.Total:0} ГБ"; }
         if (powerLabel != null) powerLabel.Text = Native.Power();
         if (timerLabel != null) timerLabel.Text = FocusTimer.Format(focus.Remaining(now));
-        if (timerStateLabel != null) timerStateLabel.Text = focus.Running ? "Одна справа. Вся твоя увага." : focus.Finished ? "Готово. Зроби паузу ☺" : "Твій час для важливого";
+        UpdateFocusTodo();
         if (timerToggle != null)
         {
             timerToggle.Content = focus.Running ? "Ⅱ   Пауза" : "▶   " + (focus.Finished ? "Ще раз" : "Почати");
