@@ -43,7 +43,7 @@ public sealed partial class IslandWindow : Window
     private readonly bool musicTest;
     private string[] pageNames = { "Головна", "Музика", "Фокус", "Нотатки", "Вигляд" };
 
-    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false)
+    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false)
     {
         this.smokeTest = smokeTest;
         this.inspectionMode = inspectionMode;
@@ -61,6 +61,7 @@ public sealed partial class IslandWindow : Window
         stage.Width = IslandSurface.StageWidth; stage.Height = IslandSurface.StageHeight;
         stage.Background = Brushes.Transparent; stage.LayoutTransform = new ScaleTransform(settings.Scale, settings.Scale);
         surface = new IslandSurface(settings);
+        surface.ReminderShown += OnReminderShown;
         surface.PetOnly = settings.PetOnly;
         surface.Audio = audioMotion;
         media.Changed += OnMediaChanged;
@@ -91,7 +92,8 @@ public sealed partial class IslandWindow : Window
             CompositionTarget.Rendering += OnRender;
             secondTimer.Tick += OnSecond; secondTimer.Start();
             saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveNow(); };
-            if (audioOutputTest) await RunAudioOutputIntegrationTest();
+            if (reminderTest) await RunReminderIntegrationTest();
+            else if (audioOutputTest) await RunAudioOutputIntegrationTest();
             else if (deviceNoticeTest) await RunDeviceNoticeIntegrationTest();
             else if (fullscreenTest) await RunFullscreenIntegrationTest();
             else if (batteryTest) await RunBatteryIntegrationTest();
@@ -268,6 +270,8 @@ public sealed partial class IslandWindow : Window
             {
                 if (BatteryEnabled) SwitchPage("Головна"); else OpenSettings("devices");
             }
+            else if (!surface.Expanded && (surface.ReminderToast != null || surface.TimerIsReminder && surface.TimerRunning))
+            { settings.FocusView = "timers"; reminderForm = false; SwitchPage("Фокус"); }
             else if (!surface.Expanded && surface.ShowCompactMusic) SwitchPage("Музика");
             SetExpanded(!surface.Expanded);
         }
@@ -305,6 +309,7 @@ public sealed partial class IslandWindow : Window
     private void OnSecond(object? sender, EventArgs e)
     {
         var now = DateTimeOffset.Now;
+        ProcessReminders(now);
         if (focus.Tick(now))
         {
             surface.Notify("Час вийшов. Ти молодець!", "celebrate", "timer", 10);
@@ -313,11 +318,18 @@ public sealed partial class IslandWindow : Window
         }
         surface.TimerRunning = focus.Running;
         surface.TimerText = FocusTimer.Format(focus.Remaining(now));
+        surface.TimerIsReminder = false; surface.TimerTitle = "Фокус";
+        var nextReminder = settings.Reminders.Next;
+        if (nextReminder != null && (!focus.Running || nextReminder.Remaining(now) < focus.Remaining(now)))
+        {
+            surface.TimerRunning = surface.TimerIsReminder = true; surface.TimerTitle = nextReminder.Title;
+            surface.TimerText = ReminderTimers.Format(nextReminder.Remaining(now));
+        }
         if (clockLabel != null) clockLabel.Text = DateTime.Now.ToString("HH:mm");
         if (dateLabel != null) dateLabel.Text = DateTime.Now.ToString("dddd, d MMMM", System.Globalization.CultureInfo.GetCultureInfo("uk-UA"));
         if (ramLabel != null) { var mem = Native.Memory(); ramLabel.Text = $"{mem.Percent}%  ·  {mem.Used:0.0} / {mem.Total:0} ГБ"; }
         if (powerLabel != null) powerLabel.Text = Native.Power();
-        if (timerLabel != null) timerLabel.Text = surface.TimerText;
+        if (timerLabel != null) timerLabel.Text = FocusTimer.Format(focus.Remaining(now));
         if (timerStateLabel != null) timerStateLabel.Text = focus.Running ? "Одна справа. Вся твоя увага." : focus.Finished ? "Готово. Зроби паузу ☺" : "Твій час для важливого";
         if (timerToggle != null)
         {

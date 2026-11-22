@@ -11,9 +11,10 @@ public static class IslandState
         expanded ? IslandMode.Expanded : notification ? IslandMode.Notification : pet ? IslandMode.Pet : timer ? IslandMode.Focus : music ? IslandMode.Music : IslandMode.Clock;
 }
 
-internal sealed record IslandNotice(string Message, string Mood, string Key, int Priority, double Created, DeviceNotice? Device = null)
+internal sealed record IslandNotice(string Message, string Mood, string Key, int Priority, double Created, DeviceNotice? Device = null, ReminderNotice? Reminder = null)
 {
-    public double Duration => Device == null ? 3 : 4.5;
+    public double Duration => Reminder != null ? 5 : Device == null ? 3 : 4.5;
+    public bool IsTimer => Reminder != null || Key == "timer";
 }
 
 internal sealed class IslandNotifications
@@ -39,17 +40,18 @@ internal sealed class IslandNotifications
     private void Enqueue(IslandNotice notice)
     {
         waiting.RemoveAll(item => item.Key == notice.Key); waiting.Add(notice);
-        if (waiting.Count > 4) waiting.Remove(waiting.OrderBy(item => item.Priority).ThenBy(item => item.Created).First());
+        var ordinary = waiting.Where(item => item.Reminder == null).ToArray();
+        if (ordinary.Length > 4) waiting.Remove(ordinary.OrderBy(item => item.Priority).ThenBy(item => item.Created).First());
     }
-    public bool Post(string message, string mood, string key, int priority, double now, DeviceNotice? device = null)
+    public bool Post(string message, string mood, string key, int priority, double now, DeviceNotice? device = null, ReminderNotice? reminder = null)
     {
         Advance(now);
-        var notice = new IslandNotice(message, mood, key, priority, now, device);
+        var notice = new IslandNotice(message, mood, key, priority, now, device, reminder);
         if (Suspended) { Enqueue(notice); return false; }
         waiting.RemoveAll(item => item.Key == key);
-        if (Current == null || Current.Key == key || priority > Current.Priority || (device == null && priority == Current.Priority))
+        if (Current == null || Current.Key == key || priority > Current.Priority || (device == null && reminder == null && Current.Reminder == null && priority == Current.Priority))
         {
-            if (Current?.Device != null && Current.Key != key) Enqueue(Current);
+            if ((Current?.Device != null || Current?.IsTimer == true) && Current.Key != key) Enqueue(Current);
             Current = notice; Until = now + notice.Duration; return true;
         }
         Enqueue(notice); return false;
@@ -59,7 +61,7 @@ internal sealed class IslandNotifications
         if (Suspended) return false;
         if (Current == null && waiting.Count == 0) return false;
         if (Current != null && now < Until) return false;
-        waiting.RemoveAll(item => now - item.Created > (item.Device == null ? 10 : 20));
+        waiting.RemoveAll(item => !item.IsTimer && now - item.Created > (item.Device == null ? 10 : 20));
         var next = waiting.OrderByDescending(item => item.Priority).FirstOrDefault();
         Current = next; Until = next == null ? 0 : now + next.Duration;
         if (next != null) waiting.Remove(next);
@@ -81,5 +83,10 @@ internal sealed class IslandNotifications
             if (updated == null) waiting.RemoveAt(i); else waiting[i] = updated;
         }
         if (Current != null) { Current = Refresh(Current); if (Current == null) Until = 0; }
+    }
+    public void RemoveReminder(string id)
+    {
+        waiting.RemoveAll(item => item.Reminder?.Id == id);
+        if (Current?.Reminder?.Id == id) { Current = null; Until = 0; }
     }
 }

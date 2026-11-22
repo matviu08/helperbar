@@ -35,9 +35,14 @@ public sealed class IslandSurface : FrameworkElement
     public bool ShowCompactMusic => CompactMode == IslandMode.Music;
     public bool TimerRunning { get; set; }
     public string TimerText { get; set; } = "";
+    public string TimerTitle { get; set; } = "Фокус";
+    public bool TimerIsReminder { get; set; }
     public string Toast => notifications.Current?.Message ?? "";
     public double ToastUntil => notifications.Until;
     internal DeviceNotice? DeviceToast => time < ToastUntil ? notifications.Current?.Device : null;
+    internal ReminderNotice? ReminderToast => time < ToastUntil ? notifications.Current?.Reminder : null;
+    internal event Action<ReminderNotice>? ReminderShown;
+    private string? lastReminderShown;
     public Geometry? BodyGeometry { get; private set; }
     public Rect BodyRect { get; private set; }
     public double Time => time;
@@ -101,14 +106,21 @@ public sealed class IslandSurface : FrameworkElement
         if (notifications.Post(notice.Message, notice.Mood, notice.Key, notice.Priority, time, notice)) React(notice.Mood);
     }
     internal void RefreshDeviceNotices(IReadOnlyList<DeviceBattery> devices) => notifications.RefreshDevices(devices, settings);
+    internal void NotifyReminder(ReminderNotice notice)
+    {
+        if (notifications.Post(notice.Title + " · час вийшов", "celebrate", notice.Key, 10, time, reminder: notice)) React("celebrate");
+    }
+    internal void RemoveReminder(string id) => notifications.RemoveReminder(id);
 
     public void Step(double dt)
     {
         time += dt;
         if (notifications.Advance(time)) React(notifications.Current!.Mood);
+        if (!notifications.Suspended && ReminderToast is { } reminder && lastReminderShown != reminder.Key)
+        { lastReminderShown = reminder.Key; ReminderShown?.Invoke(reminder); }
         var toast = time < ToastUntil;
-        IslandWidth.Target = Mode switch { IslandMode.Expanded => 524, IslandMode.Pet => 136, IslandMode.Notification => DeviceToast == null ? 340 : 416, IslandMode.Focus => 280, IslandMode.Music => 374, _ => 226 };
-        IslandHeight.Target = Mode switch { IslandMode.Expanded => 398, IslandMode.Pet => 56, IslandMode.Notification when DeviceToast != null => 76, _ => 48 };
+        IslandWidth.Target = Mode switch { IslandMode.Expanded => 524, IslandMode.Pet => 136, IslandMode.Notification => DeviceToast != null ? 416 : ReminderToast != null ? 396 : 340, IslandMode.Focus => TimerIsReminder ? 340 : 280, IslandMode.Music => 374, _ => 226 };
+        IslandHeight.Target = Mode switch { IslandMode.Expanded => 398, IslandMode.Pet => 56, IslandMode.Notification when DeviceToast != null || ReminderToast != null => 76, _ => 48 };
         if (hover && !Expanded) { IslandWidth.Target += 12; IslandHeight.Target += 3; }
         Expansion.Target = Expanded ? 1 : 0;
         hoverAmount.Target = hover ? 1 : 0;
@@ -180,6 +192,7 @@ public sealed class IslandSurface : FrameworkElement
         {
             dc.PushOpacity(open);
             if (DeviceToast is { } headerNotice) DrawDeviceNotice(dc, headerNotice, new Rect(x + 61, y + 9, w - 181, 48), true);
+            else if (ReminderToast is { } headerReminder) DrawReminderNotice(dc, headerReminder, new Rect(x + 61, y + 8, w - 181, 46));
             else
             {
                 DrawText(dc, "helper", new Point(x + 61, y + 11), 17, Brush("#F7F6FB"), true);
@@ -194,6 +207,7 @@ public sealed class IslandSurface : FrameworkElement
             if (time < ToastUntil)
             {
                 if (DeviceToast is { } deviceNotice) DrawDeviceNotice(dc, deviceNotice, new Rect(x + 65, y + 10, Math.Max(1, w - 85), 54), false);
+                else if (ReminderToast is { } reminderNotice) DrawReminderNotice(dc, reminderNotice, new Rect(x + 65, y + 12, Math.Max(1, w - 85), 52));
                 else DrawText(dc, Toast, new Point(x + 65, y + 15), 12, Brush("#F1EFF8"), false, w - 85);
             }
             else if (ShowCompactMusic)
@@ -219,6 +233,13 @@ public sealed class IslandSurface : FrameworkElement
                     var bh = 3 + value * 21;
                     dc.DrawRoundedRectangle(Brush(Color.FromArgb((byte)(85 + value * 170), color.R, color.G, color.B)), null, new Rect(x + w - 49 + i * 5.2, y + 24 - bh / 2, 3, bh), 1.5, 1.5);
                 }
+            }
+            else if (!PetOnly && TimerRunning && TimerIsReminder)
+            {
+                dc.DrawLine(new Pen(Brush("#35343C"), 1), new Point(x + 65, y + 15), new Point(x + 65, y + 33));
+                DrawText(dc, TimerTitle, new Point(x + 79, y + 8), 12, Brush("#EEE4F8"), true, w - 184);
+                DrawText(dc, "Таймер", new Point(x + 79, y + 26), 9, Brush("#9C8BAD"));
+                DrawText(dc, TimerText, new Point(x + w - 94, y + 14), 15, Accent, true, 80);
             }
             else if (!PetOnly)
             {
@@ -324,6 +345,13 @@ public sealed class IslandSurface : FrameworkElement
         dc.Pop(); dc.Pop();
     }
 
+    private void DrawReminderNotice(DrawingContext dc, ReminderNotice notice, Rect area)
+    {
+        dc.PushClip(new RectangleGeometry(area));
+        DrawText(dc, notice.Title, new Point(area.X, area.Y + 2), 15, Brush("#F3EBFC"), true, area.Width);
+        DrawText(dc, "Час вийшов · " + ReminderTimers.DurationLabel(notice.DurationSeconds), new Point(area.X, area.Y + 25), 10, Brush("#A5DEC5"), false, area.Width);
+        dc.Pop();
+    }
     private void DrawDeviceNotice(DrawingContext dc, DeviceNotice notice, Rect area, bool header)
     {
         dc.PushClip(new RectangleGeometry(area));

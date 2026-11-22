@@ -31,7 +31,7 @@ public sealed partial class IslandWindow
         stack.Children.Add(SettingsGroup("Запуск і поведінка", startup,
             Ui.Toggle("Відкривати після наведення", settings.OpenOnHover, value => { settings.OpenOnHover = value; Persist(); }),
             Ui.Toggle("Секунди в годиннику", settings.ShowSeconds, value => { settings.ShowSeconds = value; Persist(); }),
-            Ui.Toggle("Звук завершення таймера", settings.TimerSound, value => { settings.TimerSound = value; Persist(); })));
+            Ui.Toggle("Звук завершення таймерів", settings.TimerSound, value => { settings.TimerSound = value; Persist(); })));
         stack.Children.Add(SettingsGroup("Гарячі клавіші", ShortcutEditor("Відкрити / згорнути", "open", settings.OpenShortcut), Ui.Gap(7),
             ShortcutEditor("Лише очі", "pet", settings.PetShortcut), Ui.Gap(5),
             Ui.Text("Натисни комбінацію, потім нові клавіші. Esc — скасувати.", 10, "#887B98")));

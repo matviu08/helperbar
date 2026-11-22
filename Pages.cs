@@ -58,6 +58,7 @@ public sealed partial class IslandWindow
         clockLabel = dateLabel = ramLabel = powerLabel = timerLabel = timerStateLabel = noteStateLabel = null;
         timerToggle = null; progressFill = null;
         ClearMusicPage();
+        ClearFocusPage();
         ClearHomePage();
         ClearSettingsPage();
         ClearBatteryPreferences();
@@ -72,7 +73,7 @@ public sealed partial class IslandWindow
         OnSecond(null, EventArgs.Empty);
     }
 
-    private FrameworkElement FocusPage()
+    private FrameworkElement FocusSessionPage()
     {
         timerLabel = Ui.Text("25:00", 51, "#F2EBFF", true); timerLabel.HorizontalAlignment = HorizontalAlignment.Center;
         timerStateLabel = Ui.Text("Твій час для важливого", 11, "#9B8EAC"); timerStateLabel.HorizontalAlignment = HorizontalAlignment.Center;

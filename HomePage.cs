@@ -96,7 +96,7 @@ public sealed partial class IslandWindow
                 homeFocusTime = Ui.Text("", 25, "#ECE1FE", true); homeFocusStatus = HomeLine("", 10, "#A69AB9");
                 homeFocusToggle = HomeSmallButton("▶", () => { focus.Toggle(DateTimeOffset.Now); OnSecond(null, EventArgs.Empty); surface.React("curious", .7); });
                 homeFocusToggle.Width = 28; homeFocusToggle.MinHeight = 23; homeFocusToggle.Padding = new Thickness(0);
-                content = Ui.Column(HomeHeadingWithAction("ФОКУС", homeFocusToggle), homeFocusTime, homeFocusStatus); open = () => SwitchPage("Фокус"); break;
+                content = Ui.Column(HomeHeadingWithAction("ФОКУС", homeFocusToggle), homeFocusTime, homeFocusStatus); open = () => { settings.FocusView = "focus"; SwitchPage("Фокус"); }; break;
             case "system":
                 ramLabel = HomeLine("", 13, "#E2D9ED", true); powerLabel = HomeLine("", 10, "#A99CB8");
                 content = Ui.Column(HomeHeading("ТВІЙ КОМП’ЮТЕР"), Ui.Gap(9), ramLabel, Ui.Gap(5), powerLabel); break;

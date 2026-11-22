@@ -41,6 +41,8 @@ public sealed class Settings
     public string PetShortcut { get; set; } = "Ctrl+Alt+E";
     public string Note { get; set; } = "";
     public int FocusMinutes { get; set; } = 25;
+    public string FocusView { get; set; } = "focus";
+    public ReminderTimers Reminders { get; set; } = new();
     public HomeLayout Home { get; set; } = HomeLayout.Default();
     public bool BatteryMouse { get; set; } = true;
     public bool BatteryKeyboard { get; set; } = true;
@@ -75,6 +77,8 @@ public sealed class Settings
             result.SchemaVersion = CurrentSchemaVersion;
             result.TopOffset = double.IsFinite(result.TopOffset) ? Math.Clamp(result.TopOffset, 0, 180) : 12;
             result.FocusMinutes = Math.Clamp(result.FocusMinutes, 1, 180);
+            if (result.FocusView is not ("focus" or "timers")) result.FocusView = "focus";
+            result.Reminders ??= new(); result.Reminders.Normalize(DateTimeOffset.UtcNow);
             result.Note ??= "";
             result.Home ??= HomeLayout.Default(); result.Home.Normalize();
             if (!ValidColor(result.Accent)) result.Accent = "#BCACFF";
