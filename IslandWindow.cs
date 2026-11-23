@@ -43,12 +43,13 @@ public sealed partial class IslandWindow : Window
     private readonly bool musicTest;
     private string[] pageNames = { "Головна", "Музика", "Фокус", "Нотатки", "Вигляд" };
 
-    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false, bool todoTest = false, bool fileDropTest = false)
+    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false, bool todoTest = false, bool fileDropTest = false, bool profileTest = false)
     {
         this.smokeTest = smokeTest;
         this.inspectionMode = inspectionMode;
         this.musicTest = musicTest;
         settings = smokeTest ? new Settings { NotifyDeviceConnections = false, NotifyLowBattery = false } : Settings.Load();
+        settings.Profiles.Normalize(settings);
         Ui.ReducedMotion = settings.ReducedMotion;
         focus.Set(settings.FocusMinutes);
         Title = "HelperBar — твій острів";
@@ -96,7 +97,8 @@ public sealed partial class IslandWindow : Window
             CompositionTarget.Rendering += OnRender;
             secondTimer.Tick += OnSecond; secondTimer.Start();
             saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveNow(); };
-            if (fileDropTest) await RunFileDropIntegrationTest();
+            if (profileTest) await RunProfileIntegrationTest();
+            else if (fileDropTest) await RunFileDropIntegrationTest();
             else if (todoTest) await RunTodoIntegrationTest();
             else if (reminderTest) await RunReminderIntegrationTest();
             else if (audioOutputTest) await RunAudioOutputIntegrationTest();
@@ -377,7 +379,7 @@ public sealed partial class IslandWindow : Window
         if (!await CheckSettingsNavigation(directory)) { Close(); return; }
         SetExpanded(false); surface.PetOnly = true; surface.React("happy"); await Task.Delay(600); Capture(Path.Combine(directory, "03-eyes.png"));
         surface.Notify("Час вийшов. Ти молодець!", "celebrate"); await Task.Delay(300); Capture(Path.Combine(directory, "04-notification.png"));
-        File.WriteAllText(Path.Combine(directory, "smoke-test.txt"), "PASS: native WPF window; compact, expanded, 5 pages, 6 settings sections, pet and notification rendered; settings navigation and scoped reset passed; animations ran without dispatcher exceptions.");
+        File.WriteAllText(Path.Combine(directory, "smoke-test.txt"), "PASS: native WPF window; compact, expanded, 5 pages, 7 settings sections, pet and notification rendered; settings navigation and scoped reset passed; animations ran without dispatcher exceptions.");
         Close();
     }
 

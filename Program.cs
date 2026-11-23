@@ -19,13 +19,14 @@ internal static class Program
         var reminderTest = Array.IndexOf(args, "--reminder-test") >= 0;
         var todoTest = Array.IndexOf(args, "--todo-test") >= 0;
         var fileDropTest = Array.IndexOf(args, "--file-drop-test") >= 0;
+        var profileTest = Array.IndexOf(args, "--profile-test") >= 0;
         var musicTest = Array.IndexOf(args, "--music-test") >= 0;
         var dailyTest = Array.IndexOf(args, "--daily-test") >= 0;
         var homeTest = Array.IndexOf(args, "--home-test") >= 0;
         var batteryTest = Array.IndexOf(args, "--battery-test") >= 0;
         var fullscreenTest = Array.IndexOf(args, "--fullscreen-test") >= 0;
         var deviceNoticeTest = Array.IndexOf(args, "--device-notice-test") >= 0;
-        var testMode = Array.IndexOf(args, "--smoke-test") >= 0 || musicTest || dailyTest || homeTest || batteryTest || fullscreenTest || deviceNoticeTest || audioOutputTest || reminderTest || todoTest || fileDropTest;
+        var testMode = Array.IndexOf(args, "--smoke-test") >= 0 || musicTest || dailyTest || homeTest || batteryTest || fullscreenTest || deviceNoticeTest || audioOutputTest || reminderTest || todoTest || fileDropTest || profileTest;
         using var singleInstance = new Mutex(true, "Local\\HelperBar.Personal.Island", out var first);
         if (!first) { if (testMode) return 2; if (Array.IndexOf(args, "--startup") < 0) Native.NotifyExisting(); return 0; }
         var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
@@ -35,7 +36,7 @@ internal static class Program
             MessageBox.Show("Не вдалося виконати дію. Подробиці збережено у data/error.log.\n" + e.Exception.Message, "HelperBar");
             e.Handled = true;
         };
-        app.Run(new IslandWindow(testMode, Array.IndexOf(args, "--inspect") >= 0, musicTest, dailyTest, homeTest, batteryTest, fullscreenTest, deviceNoticeTest, audioOutputTest, reminderTest, todoTest, fileDropTest));
+        app.Run(new IslandWindow(testMode, Array.IndexOf(args, "--inspect") >= 0, musicTest, dailyTest, homeTest, batteryTest, fullscreenTest, deviceNoticeTest, audioOutputTest, reminderTest, todoTest, fileDropTest, profileTest));
         return Environment.ExitCode;
     }
 }

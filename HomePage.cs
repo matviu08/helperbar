@@ -23,7 +23,7 @@ public sealed partial class IslandWindow
 
     private void ClearHomePage()
     {
-        homeFilesButton = null;
+        homeFilesButton = homeProfileButton = null;
         CloseAudioOutputs(); homeOutput = null;
         homeTodoTitle = homeTodoStatus = null; homeTodoDone = null;
         homeGeneration++;
@@ -44,7 +44,7 @@ public sealed partial class IslandWindow
         OnSecond(null, EventArgs.Empty); UpdateHomeMusic(); UpdateHomeVolume(volumeService?.State ?? VolumeState.Unavailable);
         if (view == null && homeScroll != null) homeScroll.ScrollToVerticalOffset(offset);
     }
-    private FrameworkElement HomePage() => homeView switch { "edit" => HomeEditor(), "add" => HomeAddPage(), "shortcut" => HomeShortcutForm(), _ => HomeDashboard() };
+    private FrameworkElement HomePage() => homeView switch { "profiles" => HomeProfiles(), "edit" => HomeEditor(), "add" => HomeAddPage(), "shortcut" => HomeShortcutForm(), _ => HomeDashboard() };
     private FrameworkElement HomeDashboard()
     {
         var tiles = new WrapPanel();
@@ -67,7 +67,7 @@ public sealed partial class IslandWindow
         var toolbar = new DockPanel { LastChildFill = true, Margin = new Thickness(0, 0, 9, 7) };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal }; DockPanel.SetDock(buttons, Dock.Right);
         foreach (var button in actions) { button.Margin = new Thickness(6, 0, 0, 0); buttons.Children.Add(button); }
-        toolbar.Children.Add(buttons); toolbar.Children.Add(Ui.Text(title, 9, "#9B8CAE", true)); grid.Children.Add(toolbar);
+        toolbar.Children.Add(buttons); toolbar.Children.Add(homeView == "dashboard" ? CreateHomeProfileButton() : Ui.Text(title, 9, "#9B8CAE", true)); grid.Children.Add(toolbar);
         homeScroll = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, PanningMode = PanningMode.VerticalOnly };
         Grid.SetRow(homeScroll, 1); grid.Children.Add(homeScroll); return grid;
     }

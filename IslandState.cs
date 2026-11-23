@@ -89,4 +89,9 @@ internal sealed class IslandNotifications
         waiting.RemoveAll(item => item.Reminder?.Id == id);
         if (Current?.Reminder?.Id == id) { Current = null; Until = 0; }
     }
+    public void RemoveKey(string key)
+    {
+        waiting.RemoveAll(item => item.Key == key);
+        if (Current?.Key == key) { Current = null; Until = 0; }
+    }
 }

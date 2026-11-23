@@ -15,6 +15,7 @@ public sealed class Settings
     public bool Eyes { get; set; } = true;
     public bool Liquid { get; set; } = true;
     public bool ReducedMotion { get; set; }
+    public double MotionIntensity { get; set; } = 1;
     public bool ShowSeconds { get; set; }
     public bool OpenOnHover { get; set; }
     public bool TimerSound { get; set; } = true;
@@ -43,6 +44,7 @@ public sealed class Settings
     public string NotesView { get; set; } = "note";
     public TodoList Todos { get; set; } = new();
     public FileShelf Files { get; set; } = new();
+    public ProfileCollection Profiles { get; set; } = new();
     public int FocusMinutes { get; set; } = 25;
     public string FocusView { get; set; } = "focus";
     public ReminderTimers Reminders { get; set; } = new();
@@ -52,6 +54,8 @@ public sealed class Settings
     public bool BatteryHeadphones { get; set; } = true;
     public bool NotifyDeviceConnections { get; set; } = true;
     public bool NotifyLowBattery { get; set; } = true;
+    public bool NotifyTaskCompletion { get; set; } = true;
+    public bool NotifyFocusBanner { get; set; } = true;
     public bool FullscreenEnabled { get; set; } = true;
     public bool FullscreenEyes { get; set; }
     [JsonIgnore] public string? LoadWarning { get; private set; }
@@ -65,6 +69,7 @@ public sealed class Settings
             var result = JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new();
             result.Scale = double.IsFinite(result.Scale) ? Math.Clamp(result.Scale, .75, 1.4) : 1;
             result.Speed = double.IsFinite(result.Speed) ? Math.Clamp(result.Speed, .6, 1.6) : 1;
+            result.MotionIntensity = Intensity(result.MotionIntensity);
             result.AudioSensitivity = double.IsFinite(result.AudioSensitivity) ? Math.Clamp(result.AudioSensitivity, .6, 1.8) : 1;
             result.SpectrumIntensity = Intensity(result.SpectrumIntensity);
             result.EdgeIntensity = Intensity(result.EdgeIntensity);
@@ -74,7 +79,7 @@ public sealed class Settings
             result.PositionY = double.IsFinite(result.PositionY) ? Math.Clamp(result.PositionY, 0, 1) : 0;
             result.MonitorId ??= ""; result.MonitorName ??= "";
             if (result.LastPage is not ("Головна" or "Музика" or "Фокус" or "Нотатки" or "Вигляд")) result.LastPage = "Головна";
-            if (result.SettingsSection is not ("appearance" or "music" or "devices" or "fullscreen" or "position" or "general")) result.SettingsSection = "appearance";
+            if (result.SettingsSection is not ("profiles" or "appearance" or "music" or "devices" or "fullscreen" or "position" or "general")) result.SettingsSection = "appearance";
             if (!Shortcut.TryParse(result.OpenShortcut, out _)) result.OpenShortcut = "Ctrl+Alt+Space";
             if (!Shortcut.TryParse(result.PetShortcut, out _)) result.PetShortcut = "Ctrl+Alt+E";
             result.SchemaVersion = CurrentSchemaVersion;
@@ -89,6 +94,7 @@ public sealed class Settings
             result.Home ??= HomeLayout.Default(); result.Home.Normalize();
             if (!ValidColor(result.Accent)) result.Accent = "#BCACFF";
             if (!ValidColor(result.Body)) result.Body = "#08090C";
+            result.Profiles ??= new(); result.Profiles.Normalize(result);
             return result;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)
@@ -102,14 +108,15 @@ public sealed class Settings
         }
     }
 
-    private static bool ValidColor(string? color) => color is { Length: 7 } && color[0] == '#' && uint.TryParse(color.AsSpan(1), System.Globalization.NumberStyles.HexNumber, null, out _);
-    private static double Intensity(double value) => double.IsFinite(value) ? Math.Clamp(value, 0, 1.5) : 1;
+    internal static bool ValidColor(string? color) => color is { Length: 7 } && color[0] == '#' && uint.TryParse(color.AsSpan(1), System.Globalization.NumberStyles.HexNumber, null, out _);
+    internal static double Intensity(double value) => double.IsFinite(value) ? Math.Clamp(value, 0, 1.5) : 1;
 
     public void Save(string? path = null)
     {
         path ??= Path.Combine(DataDirectory, "settings.json");
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         SchemaVersion = CurrentSchemaVersion;
+        Profiles ??= new(); Profiles.CaptureActive(this);
         var temporary = path + ".tmp";
         File.WriteAllText(temporary, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
         if (File.Exists(path))

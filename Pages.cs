@@ -147,8 +147,9 @@ public sealed partial class IslandWindow
         stack.Children.Add(SettingsGroup("Рух і анімації",
             Ui.Toggle("Живі очі", settings.Eyes, value => { settings.Eyes = value; Persist(); }),
             Ui.Toggle("Рідкий контур і краплі", settings.Liquid, value => { settings.Liquid = value; surface.React("happy"); Persist(); }),
-            Ui.Toggle("Зменшити рух", settings.ReducedMotion, value => { settings.ReducedMotion = value; Ui.ReducedMotion = value; Persist(); }), Ui.Gap(6),
-            SliderRow("Швидкість руху", .6, 1.6, settings.Speed, value => { settings.Speed = value; Persist(); }, value => $"{value:0.0}×")));
+            Ui.Toggle("Зменшити рух", settings.ReducedMotion, value => { settings.ReducedMotion = value; Ui.ReducedMotion = value; surface.RefreshProfilePresentation(); Persist(); }), Ui.Gap(6),
+            SliderRow("Швидкість руху", .6, 1.6, settings.Speed, value => { settings.Speed = value; Persist(); }, value => $"{value:0.0}×"),
+            SliderRow("Сила декоративного руху", 0, 1.5, settings.MotionIntensity, value => { settings.MotionIntensity = value; surface.RefreshProfilePresentation(); Persist(); }, Percent)));
         var moods = new WrapPanel();
         foreach (var (title, mood) in new[] { ("Радість", "happy"), ("Цікавість", "curious"), ("Подив", "surprised"), ("Сон", "sleepy"), ("Підморгнути", "wink"), ("Запаморочення", "dizzy"), ("Свято", "celebrate") })
         {
@@ -190,7 +191,7 @@ public sealed partial class IslandWindow
     private void ResetAppearance()
     {
         settings.Accent = "#BCACFF"; settings.Body = "#08090C"; settings.Eyes = true; settings.Liquid = true; settings.ReducedMotion = false;
-        settings.Speed = 1;
+        settings.Speed = settings.MotionIntensity = 1;
         Ui.ReducedMotion = false; Resources["AccentBrush"] = Ui.Brush(settings.Accent); Persist(); OpenSettings("appearance"); surface.React("happy");
     }
 }

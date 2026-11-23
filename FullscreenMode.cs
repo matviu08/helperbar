@@ -110,7 +110,7 @@ public sealed partial class IslandWindow
     private void PlayTimerAlert()
     {
         if (settings.TimerSound) System.Media.SystemSounds.Asterisk.Play();
-        tray?.ShowBalloonTip(5000, "Фокус завершено", "Час трохи відпочити.", System.Windows.Forms.ToolTipIcon.Info);
+        if (settings.NotifyFocusBanner) tray?.ShowBalloonTip(5000, "Фокус завершено", "Час трохи відпочити.", System.Windows.Forms.ToolTipIcon.Info);
     }
     private void ClearFullscreenPreferences()
     {

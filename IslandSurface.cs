@@ -50,6 +50,8 @@ public sealed class IslandSurface : FrameworkElement
     public Color AccentColor => (Color)ColorConverter.ConvertFromString(settings.Accent);
     public Brush Accent => Brush(AccentColor);
     public string Mood => mood;
+    private double Decoration => settings.ReducedMotion ? 0 : settings.MotionIntensity;
+    internal int ParticleCount => sparks.Count;
     public Point EyeCenter => new(eyePosition.Value, 41);
 
     private sealed class Spark
@@ -82,10 +84,10 @@ public sealed class IslandSurface : FrameworkElement
     public void React(string expression, double seconds = 2.6)
     {
         idleSleeping = false; mood = expression; moodUntil = time + seconds;
-        if (!settings.ReducedMotion) { squish.Velocity = expression == "surprised" ? 4.5 : -3.2; rippleAt = time; }
-        if ((expression == "happy" || expression == "celebrate") && !settings.ReducedMotion)
+        if (Decoration > 0) { squish.Velocity = (expression == "surprised" ? 4.5 : -3.2) * Decoration; rippleAt = time; }
+        if ((expression == "happy" || expression == "celebrate") && Decoration > 0)
         {
-            for (var i = 0; i < (expression == "celebrate" ? 22 : 7); i++)
+            for (var i = 0; i < (int)Math.Round((expression == "celebrate" ? 22 : 7) * Decoration); i++)
                 sparks.Add(new Spark { X = EyeCenter.X + random.NextDouble() * 28 - 14, Y = 36, Vx = random.NextDouble() * 110 - 55, Vy = -45 - random.NextDouble() * 65, Life = 1 + random.NextDouble() * .6, Size = 2 + random.NextDouble() * 3, Heart = expression == "happy" && i % 2 == 0 });
         }
         InvalidateVisual();
@@ -93,7 +95,18 @@ public sealed class IslandSurface : FrameworkElement
 
     public void Notify(string message, string expression = "happy", string? key = null, int priority = 0)
     {
+        if (key == "todo-complete" && !settings.NotifyTaskCompletion) { React(expression); return; }
         if (notifications.Post(message, expression, key ?? message, priority, time)) React(expression);
+    }
+
+    internal void RefreshNotificationPreferences()
+    {
+        if (!settings.NotifyTaskCompletion) notifications.RemoveKey("todo-complete");
+    }
+    internal void RefreshProfilePresentation()
+    {
+        sparks.Clear(); squish.Value = squish.Target = 1; squish.Velocity = 0; rippleAt = -10;
+        RefreshNotificationPreferences(); InvalidateVisual();
     }
 
     public void DeferNotifications(bool value)
@@ -121,7 +134,7 @@ public sealed class IslandSurface : FrameworkElement
         var toast = time < ToastUntil;
         IslandWidth.Target = Mode switch { IslandMode.Expanded => 524, IslandMode.Pet => 136, IslandMode.Notification => DeviceToast != null ? 416 : ReminderToast != null ? 396 : 340, IslandMode.Focus => TimerIsReminder ? 340 : 280, IslandMode.Music => 374, _ => 226 };
         IslandHeight.Target = Mode switch { IslandMode.Expanded => 398, IslandMode.Pet => 56, IslandMode.Notification when DeviceToast != null || ReminderToast != null => 76, _ => 48 };
-        if (hover && !Expanded) { IslandWidth.Target += 12; IslandHeight.Target += 3; }
+        if (hover && !Expanded) { IslandWidth.Target += 12 * Decoration; IslandHeight.Target += 3 * Decoration; }
         Expansion.Target = Expanded ? 1 : 0;
         hoverAmount.Target = hover ? 1 : 0;
         IslandWidth.Step(dt, settings.Speed, settings.ReducedMotion);
@@ -154,10 +167,11 @@ public sealed class IslandSurface : FrameworkElement
         var h = IslandHeight.Value;
         var x = (StageWidth - w) / 2;
         const double y = 16;
-        var reaction = settings.ReducedMotion ? 0 : Math.Exp(-Math.Max(0, time - rippleAt) * 2.7) * 7;
+        var reaction = Math.Exp(-Math.Max(0, time - rippleAt) * 2.7) * 7;
         var sound = settings.AudioReactive && !settings.ReducedMotion ? Audio?.Level ?? 0 : 0;
         var bass = settings.AudioReactive && !settings.ReducedMotion ? Audio?.Bass ?? 0 : 0;
-        var liquid = settings.Liquid && !settings.ReducedMotion ? (1.0 + hoverAmount.Value * 1.8 + reaction + (bass * 6 + sound * 2) * settings.EdgeIntensity) * (1 - open * .86) : 0;
+        var liquid = settings.Liquid ? (1.0 + hoverAmount.Value * 1.8 + reaction + (bass * 6 + sound * 2) * settings.EdgeIntensity) * (1 - open * .86) * Decoration : 0;
+        reaction *= Decoration;
         BodyRect = new Rect(x, y, w, h);
         BodyGeometry = Shape(BodyRect, 25 + open * 7, liquid);
 
@@ -169,7 +183,7 @@ public sealed class IslandSurface : FrameworkElement
         if (reaction > .2 || hoverAmount.Value > .05 || sound > .02)
         {
             var accent = DeviceToast?.Kind == DeviceNoticeKind.LowBattery ? (Color)ColorConverter.ConvertFromString("#F0B386") : Media.ArtworkColor ?? AccentColor;
-            for (var i = 3; i >= 1; i--) dc.DrawGeometry(null, new Pen(Brush(Color.FromArgb((byte)Math.Clamp((reaction * 2 + hoverAmount.Value * 5 + sound * 22 * settings.GlowIntensity) / i, 0, 40), accent.R, accent.G, accent.B)), i * 3), BodyGeometry);
+            for (var i = 3; i >= 1; i--) dc.DrawGeometry(null, new Pen(Brush(Color.FromArgb((byte)Math.Clamp((reaction * 2 + hoverAmount.Value * 5 * Decoration + sound * 22 * settings.GlowIntensity) / i, 0, 40), accent.R, accent.G, accent.B)), i * 3), BodyGeometry);
         }
         dc.DrawGeometry(Brush((Color)ColorConverter.ConvertFromString(settings.Body)), new Pen(Brush("#303137"), 1), BodyGeometry);
         dc.PushClip(BodyGeometry);
@@ -306,7 +320,7 @@ public sealed class IslandSurface : FrameworkElement
 
     private void DrawEyes(DrawingContext dc, Point center, double scale)
     {
-        var breathing = settings.ReducedMotion ? 0 : Math.Sin(time * 1.5) * .65;
+        var breathing = Math.Sin(time * 1.5) * .65 * Decoration;
         var blinkAge = time - blinkStart;
         var blink = blinkAge >= 0 && blinkAge < .19 ? 1 - Math.Sin(blinkAge / .19 * Math.PI) * .96 : 1;
         dc.PushTransform(new TranslateTransform(center.X, center.Y + breathing));

@@ -11,6 +11,7 @@ public sealed partial class IslandWindow
 {
     private static readonly (string Id, string Label, string Glyph, string Title, string Hint)[] settingsSections =
     {
+        ("profiles", "Профілі", "\uE748", "Твої режими", "Власний вигляд і поведінка для кожного режиму"),
         ("appearance", "Вигляд", "\uE790", "Твій острів", "Кольори, живі очі та характер руху"),
         ("music", "Музика", "\uE8D6", "У ритмі музики", "Мініплеєр і реакція на звук"),
         ("devices", "Пристрої", "\uE772", "Твої пристрої", "Заряд, підключення та сповіщення"),
@@ -51,12 +52,12 @@ public sealed partial class IslandWindow
         layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(14) });
         layout.ColumnDefinitions.Add(new ColumnDefinition());
         var menu = new StackPanel();
-        var label = Ui.Text("РОЗДІЛИ", 8, "#81758F", true); label.Margin = new Thickness(9, 7, 0, 9);
+        var label = Ui.Text("РОЗДІЛИ", 8, "#81758F", true); label.Margin = new Thickness(9, 4, 0, 7);
         menu.Children.Add(label);
         foreach (var section in settingsSections)
         {
             var button = Ui.Button(section.Label, () => SelectSettingsSection(section.Id), section.Title);
-            button.MinHeight = 30; button.Height = 30; button.Padding = new Thickness(8, 4, 7, 4);
+            button.MinHeight = 26; button.Height = 26; button.Padding = new Thickness(8, 3, 7, 3);
             button.Margin = new Thickness(0, 0, 0, 3); button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             var content = new StackPanel { Orientation = Orientation.Horizontal };
             content.Children.Add(new TextBlock { Text = section.Glyph, FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 12, Width = 23, VerticalAlignment = VerticalAlignment.Center });
@@ -81,12 +82,13 @@ public sealed partial class IslandWindow
     {
         if (settingsScroll == null || (visibleSettingsSection == id && animate)) return;
         var section = Array.Find(settingsSections, s => s.Id == id);
-        if (section.Id == null) section = settingsSections[0];
+        if (section.Id == null) section = Array.Find(settingsSections, s => s.Id == "appearance");
         RememberSettingsScroll();
         ClearBatteryPreferences(); ClearFullscreenPreferences();
         capturingShortcut = false;
         visibleSettingsSection = section.Id; settings.SettingsSection = section.Id; Persist();
-        settingsTitle!.Text = section.Title; settingsHint!.Text = section.Hint;
+        settingsTitle!.Text = section.Title; settingsHint!.Text = section.Id is "appearance" or "music" or "devices" or "fullscreen"
+            ? "Профіль «" + settings.Profiles.Active.Title + "» · зміни зберігаються" : section.Hint;
         foreach (var (key, button) in settingsNavigation)
         {
             var selected = key == section.Id;
@@ -99,6 +101,7 @@ public sealed partial class IslandWindow
         }
         var content = section.Id switch
         {
+            "profiles" => ProfilesPreferences(),
             "music" => MusicPreferences(),
             "devices" => BatteryPreferences(),
             "fullscreen" => FullscreenPreferences(),
