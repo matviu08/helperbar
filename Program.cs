@@ -33,7 +33,7 @@ internal static class Program
         app.DispatcherUnhandledException += (_, e) =>
         {
             try { Directory.CreateDirectory(Settings.DataDirectory); File.AppendAllText(Path.Combine(Settings.DataDirectory, "error.log"), DateTime.Now + " " + e.Exception + Environment.NewLine); } catch { }
-            MessageBox.Show("Не вдалося виконати дію. Подробиці збережено у data/error.log.\n" + e.Exception.Message, "HelperBar");
+            MessageBox.Show("Не вдалося виконати дію. Журнал: " + Path.Combine(Settings.DataDirectory, "error.log") + "\n" + e.Exception.Message, "HelperBar");
             e.Handled = true;
         };
         app.Run(new IslandWindow(testMode, Array.IndexOf(args, "--inspect") >= 0, musicTest, dailyTest, homeTest, batteryTest, fullscreenTest, deviceNoticeTest, audioOutputTest, reminderTest, todoTest, fileDropTest, profileTest));

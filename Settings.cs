@@ -9,7 +9,7 @@ public sealed class Settings
 {
     public const int CurrentSchemaVersion = 2;
     public int SchemaVersion { get; set; }
-    public static string DataDirectory => Path.Combine(AppContext.BaseDirectory, "data");
+    public static string DataDirectory => AppStorage.Current.Directory;
     public string Accent { get; set; } = "#BCACFF";
     public string Body { get; set; } = "#08090C";
     public bool Eyes { get; set; } = true;
@@ -62,10 +62,16 @@ public sealed class Settings
 
     public static Settings Load(string? path = null)
     {
+        var storageWarning = path == null ? AppStorage.Current.Warning : null;
         path ??= Path.Combine(DataDirectory, "settings.json");
         try
         {
-            if (!File.Exists(path)) return new() { SchemaVersion = CurrentSchemaVersion };
+            if (!File.Exists(path))
+            {
+                if (!path.EndsWith(".bak", StringComparison.OrdinalIgnoreCase) && File.Exists(path + ".bak"))
+                { var recovered = Load(path + ".bak"); recovered.LoadWarning ??= "Налаштування відновлено з резервної копії."; return recovered; }
+                return new() { SchemaVersion = CurrentSchemaVersion, LoadWarning = storageWarning };
+            }
             var result = JsonSerializer.Deserialize<Settings>(File.ReadAllText(path)) ?? new();
             result.Scale = double.IsFinite(result.Scale) ? Math.Clamp(result.Scale, .75, 1.4) : 1;
             result.Speed = double.IsFinite(result.Speed) ? Math.Clamp(result.Speed, .6, 1.6) : 1;
@@ -95,6 +101,7 @@ public sealed class Settings
             if (!ValidColor(result.Accent)) result.Accent = "#BCACFF";
             if (!ValidColor(result.Body)) result.Body = "#08090C";
             result.Profiles ??= new(); result.Profiles.Normalize(result);
+            result.LoadWarning ??= storageWarning;
             return result;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or NotSupportedException)

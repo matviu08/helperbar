@@ -10,7 +10,9 @@
     <AssemblyName>HelperBar</AssemblyName>
     <RootNamespace>HelperBar</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.13.0</Version>
+    <Version>0.13.1</Version>
+    <ApplicationIcon>Assets\HelperBar.ico</ApplicationIcon>
+    <DefaultItemExcludes>$(DefaultItemExcludes);artifacts\**</DefaultItemExcludes>
     <Description>A personal animated desktop island.</Description>
   </PropertyGroup>
 </Project>

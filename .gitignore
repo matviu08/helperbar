@@ -3,6 +3,7 @@ obj/
 dist/
 data/
 qa/
+artifacts/
 *.user
 *.suo
 *.lnk
