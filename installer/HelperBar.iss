@@ -107,7 +107,7 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   InstalledVersion, PackageVersion: Int64;
 #ifndef InstallerTest
-  Command, ExecutablePath, Product: String;
+  Command, ExecutablePath, ExecutableVersion: String;
 #endif
 begin
   Result := '';
@@ -127,9 +127,9 @@ begin
     if (Copy(Command, 1, 1) = '"') and
        (Copy(Command, Length(Command) - 10, 11) = '" --startup') then begin
       ExecutablePath := Copy(Command, 2, Length(Command) - 12);
-      if SameText(ExtractFileName(ExecutablePath), 'HelperBar.exe') and
-         GetStringFileInfo(ExecutablePath, 'ProductName', Product) then
-        RetargetStartup := SameText(Product, 'HelperBar');
+      RetargetStartup := SameText(ExtractFileName(ExecutablePath), 'HelperBar.exe') and
+        FileExists(AddBackslash(ExtractFileDir(ExecutablePath)) + 'HelperBar.dll') and
+        GetVersionNumbersString(ExecutablePath, ExecutableVersion);
     end;
   end;
 #endif
