@@ -17,6 +17,7 @@ internal static class SelfTests
             AudioOutputTests.Run(Check);
             ReminderTests.Run(Check, root);
             TodoTests.Run(Check, root);
+            FileShelfTests.Run(Check, root);
             var spring = new Spring(226) { Target = 524 };
             var max = 0d;
             for (var i = 0; i < 240; i++) { spring.Step(1d / 60); max = Math.Max(max, spring.Value); }

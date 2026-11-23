@@ -43,7 +43,7 @@ public sealed partial class IslandWindow : Window
     private readonly bool musicTest;
     private string[] pageNames = { "Головна", "Музика", "Фокус", "Нотатки", "Вигляд" };
 
-    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false, bool todoTest = false)
+    public IslandWindow(bool smokeTest = false, bool inspectionMode = false, bool musicTest = false, bool dailyTest = false, bool homeTest = false, bool batteryTest = false, bool fullscreenTest = false, bool deviceNoticeTest = false, bool audioOutputTest = false, bool reminderTest = false, bool todoTest = false, bool fileDropTest = false)
     {
         this.smokeTest = smokeTest;
         this.inspectionMode = inspectionMode;
@@ -69,6 +69,7 @@ public sealed partial class IslandWindow : Window
         stage.Children.Add(surface);
         Content = stage;
         BuildExpanded();
+        InitializeFileDrop();
         stage.MouseLeftButtonDown += OnPointerDown;
         stage.MouseLeftButtonUp += OnPointerUp;
         stage.MouseMove += OnPointerMove;
@@ -79,6 +80,7 @@ public sealed partial class IslandWindow : Window
         };
         PreviewKeyDown += (_, e) =>
         {
+            if (e.Key == Key.Escape && FilesPanelOpen) { CancelFileDrag(); CloseFilesPanel(); e.Handled = true; return; }
             if (e.Key == Key.Escape && currentPage == "Нотатки" && settings.NotesView == "tasks" && todoEditingId != null)
             { CancelTodoEdit(); e.Handled = true; return; }
             if (!capturingShortcut && e.Key == Key.Escape) { SetExpanded(false); e.Handled = true; }
@@ -94,7 +96,8 @@ public sealed partial class IslandWindow : Window
             CompositionTarget.Rendering += OnRender;
             secondTimer.Tick += OnSecond; secondTimer.Start();
             saveTimer.Tick += (_, _) => { saveTimer.Stop(); SaveNow(); };
-            if (todoTest) await RunTodoIntegrationTest();
+            if (fileDropTest) await RunFileDropIntegrationTest();
+            else if (todoTest) await RunTodoIntegrationTest();
             else if (reminderTest) await RunReminderIntegrationTest();
             else if (audioOutputTest) await RunAudioOutputIntegrationTest();
             else if (deviceNoticeTest) await RunDeviceNoticeIntegrationTest();
@@ -153,7 +156,7 @@ public sealed partial class IslandWindow : Window
             if (fullscreenClickThrough) { handled = true; return new IntPtr(-1); }
             var packed = lParam.ToInt64();
             var point = stage.PointFromScreen(new Point((short)(packed & 0xffff), (short)((packed >> 16) & 0xffff)));
-            if (!IsInside(point)) { handled = true; return new IntPtr(-1); }
+            if (!IsInside(point) && !(fileDropFixture && new Rect(105, 432, 390, 64).Contains(point))) { handled = true; return new IntPtr(-1); }
         }
         if (msg == Native.WM_HOTKEY)
         {
@@ -216,7 +219,7 @@ public sealed partial class IslandWindow : Window
 
     private void SetExpanded(bool value, bool activate = true)
     {
-        if (!value) CloseAudioOutputs();
+        if (!value) { CloseAudioOutputs(); CloseFilesPanel(); }
         if (value && activate && !applyingFullscreen) ShowIslandManually();
         surface.Expanded = value;
         expanded.IsHitTestVisible = value;
@@ -296,7 +299,7 @@ public sealed partial class IslandWindow : Window
             var over = IsInside(point);
             surface.Pointer(point, over);
             if (!over) hoverArmed = true;
-            if (over && hoverArmed && !surface.Expanded && settings.OpenOnHover && pressPoint == null && !fullscreenQuietApplied) hoverTime += dt;
+            if (over && hoverArmed && !surface.Expanded && settings.OpenOnHover && pressPoint == null && !fullscreenQuietApplied && !fileDragActive) hoverTime += dt;
             else hoverTime = 0;
             if (hoverTime > .65) { SetExpanded(true); hoverTime = 0; }
         }

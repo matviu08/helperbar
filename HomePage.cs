@@ -23,6 +23,7 @@ public sealed partial class IslandWindow
 
     private void ClearHomePage()
     {
+        homeFilesButton = null;
         CloseAudioOutputs(); homeOutput = null;
         homeTodoTitle = homeTodoStatus = null; homeTodoDone = null;
         homeGeneration++;
@@ -55,7 +56,8 @@ public sealed partial class IslandWindow
                 Ui.Button("＋  Додати першу плитку", () => RebuildHome("add"), primary: true));
             empty.Margin = new Thickness(16, 24, 16, 0); tiles.Children.Add(empty);
         }
-        var result = HomeFrame("ПІД РУКОЮ", tiles, HomeSmallButton("＋ Додати", () => RebuildHome("add")), HomeSmallButton("Налаштувати", () => RebuildHome("edit")));
+        homeFilesButton = HomeSmallButton("Файли · " + settings.Files.Items.Count, () => OpenFilesPanel());
+        var result = HomeFrame("ПІД РУКОЮ", tiles, homeFilesButton, HomeSmallButton("＋ Додати", () => RebuildHome("add")), HomeSmallButton("Налаштувати", () => RebuildHome("edit")));
         UpdateHomeMusic(); UpdateHomeWidgets(); UpdateHomeVolume(volumeService?.State ?? VolumeState.Unavailable);
         return result;
     }

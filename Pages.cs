@@ -38,6 +38,7 @@ public sealed partial class IslandWindow
 
     private void SwitchPage(string name)
     {
+        CloseFilesPanel();
         if (currentPage == "Нотатки") { saveTimer.Stop(); SaveNow(); }
         currentPage = name;
         settings.LastPage = name; Persist();
